@@ -1,0 +1,50 @@
+<?php
+
+namespace YousignBundle\Service;
+
+use Http\Client\Common\Plugin\AddHostPlugin;
+use Http\Client\Common\Plugin\HeaderAppendPlugin;
+use Http\Client\Common\PluginClient;
+use Http\Discovery\Psr17FactoryDiscovery;
+use Http\Discovery\Psr18ClientDiscovery;
+use IIYousign\Authentication\ApiKeyAuthentication;
+use IIYousign\Client;
+use IIYousign\Normalizer\JaneObjectNormalizer;
+use Symfony\Component\Serializer\Encoder\JsonDecode;
+use Symfony\Component\Serializer\Encoder\JsonEncode;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
+use Symfony\Component\Serializer\Serializer;
+
+class YousignClient extends Client
+{
+
+    public function __construct(string $baseUrl, string $apiKey, $httpClient = null, array $additionalPlugins = array(), array $additionalNormalizers = array())
+    {
+        if (null === $httpClient) {
+            $httpClient = Psr18ClientDiscovery::find();
+            $plugins = [];
+            $uri = Psr17FactoryDiscovery::findUrlFactory()->createUri($baseUrl);
+            $plugins[] = new AddHostPlugin($uri);
+            $plugins[] = new ApiKeyAuthentication($apiKey);
+            $plugins[] = new HeaderAppendPlugin(
+                [
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . $apiKey
+                ]
+            );
+            if (count($additionalPlugins) > 0) {
+                $plugins = array_merge($plugins, $additionalPlugins);
+            }
+            $httpClient = new PluginClient($httpClient, $plugins);
+        }
+        $requestFactory = Psr17FactoryDiscovery::findRequestFactory();
+        $streamFactory = Psr17FactoryDiscovery::findStreamFactory();
+        $normalizers = array(new ArrayDenormalizer(), new JaneObjectNormalizer());
+        if (count($additionalNormalizers) > 0) {
+            $normalizers = array_merge($normalizers, $additionalNormalizers);
+        }
+        $serializer = new Serializer($normalizers, array(new JsonEncoder(new JsonEncode(), new JsonDecode(array('json_decode_associative' => true)))));
+        parent::__construct($httpClient, $requestFactory, $serializer, $streamFactory);
+    }
+}
