@@ -26,7 +26,6 @@ class YousignClient extends Client
             $plugins = [];
             $uri = Psr17FactoryDiscovery::findUrlFactory()->createUri($baseUrl);
             $plugins[] = new AddHostPlugin($uri);
-            $plugins[] = new ApiKeyAuthentication($apiKey);
             $plugins[] = new HeaderAppendPlugin(
                 [
                     'Content-Type' => 'application/json',
