@@ -3,11 +3,11 @@
 namespace YousignBundle\Service;
 
 use Http\Client\Common\Plugin\AddHostPlugin;
-use Http\Client\Common\Plugin\HeaderAppendPlugin;
+use Http\Client\Common\Plugin\AuthenticationPlugin;
 use Http\Client\Common\PluginClient;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Discovery\Psr18ClientDiscovery;
-use IIYousign\Authentication\ApiKeyAuthentication;
+use Http\Message\Authentication\Bearer;
 use IIYousign\Client;
 use IIYousign\Normalizer\JaneObjectNormalizer;
 use Symfony\Component\Serializer\Encoder\JsonDecode;
@@ -26,12 +26,8 @@ class YousignClient extends Client
             $plugins = [];
             $uri = Psr17FactoryDiscovery::findUrlFactory()->createUri($baseUrl);
             $plugins[] = new AddHostPlugin($uri);
-            $plugins[] = new HeaderAppendPlugin(
-                [
-                    'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer ' . $apiKey
-                ]
-            );
+            $plugins[] =  new AuthenticationPlugin(new Bearer($apiKey));
+
             if (count($additionalPlugins) > 0) {
                 $plugins = array_merge($plugins, $additionalPlugins);
             }

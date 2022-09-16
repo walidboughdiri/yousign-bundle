@@ -15,7 +15,7 @@ return static function (ContainerConfigurator $container) {
         ->args(
             [
                 param('yousign.baseUrl'),
-                param('yousign.apiKey')
+                param('yousign.apiKey'),
             ]
         )
     ;
