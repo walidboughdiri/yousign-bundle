@@ -21,7 +21,7 @@
     },
     "require": {
         "symfony/framework-bundle": "*",
-        "walidboughdiri/yousign": "^1.0",
+        "walidboughdiri/yousign": "^3.0",
         "php-http/logger-plugin": "^1.3"
     },
     "extra": {
